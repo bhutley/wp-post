@@ -54,6 +54,12 @@ optp.add_option("-c", "--config", dest="config_file", metavar="FILE",
                 help="wordpress blogs configuration file")
 optp.add_option("-b", "--blog", dest="blog", default="Main",
                 help="Blog to post to.")
+optp.add_option("-P", "--publish", dest="publish", action="store_true", default=False,
+                help="Whether to publish the post automatically.")
+optp.add_option("-C", "--categories", dest="categories", default="",
+                help="A comma-separated list of categories.")
+optp.add_option("-T", "--tags", dest="tags", default="",
+                help="A comma-separated list of tags.")
 
 opts, args = optp.parse_args()
 
@@ -127,5 +133,20 @@ if title is not None:
     html = html2
 
 post.content = html
+
+if opts.publish == True:
+    post.post_status = 'publish'
+
+if len(opts.tags) > 0:
+    tags = opts.tags.split(",")
+    if not hasattr(post, 'terms_names') or post.terms_names is None:
+        post.terms_names = {}
+    post.terms_names['post_tag'] = tags
+
+if len(opts.categories) > 0:
+    cats = opts.categories.split(",")
+    if not hasattr(post, 'terms_names') or post.terms_names is None:
+        post.terms_names = {}
+    post.terms_names['category'] = cats
 
 post_id = wp.call(NewPost(post))
