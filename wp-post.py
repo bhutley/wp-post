@@ -10,10 +10,7 @@
 # image on the server into your post.
 #
 import sys, os
-from wordpress_xmlrpc import Client, WordPressPost
-from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
-from wordpress_xmlrpc.methods import media
-from wordpress_xmlrpc.compat import xmlrpc_client
+import wordpresslib
 import markdown
 from BeautifulSoup import BeautifulSoup
 from ConfigParser import SafeConfigParser
@@ -99,7 +96,7 @@ if len(title) < 5:
     print("Couldn't parse the title! Do you have an h1 title?")
     exit(0)
 
-wp = Client(url+"xmlrpc.php", user, password)
+wp = wordpresslib.WordPressClient(url+"xmlrpc.php", user, password)
 
 images = {}
 
@@ -112,7 +109,7 @@ for i in xrange(1, len(args)):
 
 # select blog id
 #wp.selectBlog(0)
-post = WordPressPost()	
+post = wordpresslib.WordPressPost()	
 if title is not None:
     post.title = title
 
@@ -132,7 +129,7 @@ if title is not None:
             html2 += ("%s\n" % (line, ))
     html = html2
 
-post.content = html
+post.description = html
 
 if opts.publish == True:
     post.post_status = 'publish'
@@ -149,4 +146,4 @@ if len(opts.categories) > 0:
         post.terms_names = {}
     post.terms_names['category'] = cats
 
-post_id = wp.call(NewPost(post))
+post_id = wp.newPost(post, True)
