@@ -10,7 +10,6 @@
 # image on the server into your post.
 #
 import sys, os
-#from wordpresslib import WordPressClient, WordPressPost
 from wordpress_xmlrpc import Client, WordPressPost
 from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
 import xmlrpclib
@@ -154,4 +153,3 @@ if len(opts.categories) > 0:
     post.terms_names['category'] = cats
 
 post_id = wp.call(NewPost(post))
-#print post.description
