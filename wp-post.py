@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # wp-post.py
 #
@@ -10,12 +10,14 @@
 # image on the server into your post.
 #
 import sys, os
+#from wordpresslib import WordPressClient, WordPressPost
 from wordpress_xmlrpc import Client, WordPressPost
 from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
-from wordpress_xmlrpc.methods import media
+import xmlrpclib
 from wordpress_xmlrpc.compat import xmlrpc_client
+from wordpress_xmlrpc.methods.media import UploadFile
 import markdown
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from ConfigParser import SafeConfigParser
 from optparse import OptionParser
 
@@ -38,7 +40,7 @@ def upload_image(client, filename):
     with open(filename, 'rb') as img:
         data['bits'] = xmlrpc_client.Binary(img.read())
 
-    response = client.call(media.UploadFile(data))
+    response = client.call(UploadFile(data))
     #print(response)
     # response == {
     #       'id': 6,
@@ -93,13 +95,14 @@ for i in xrange(0, len(md_content)):
     md_content[i] = unicode(md_content[i], errors = 'replace')
 html = md.convert("".join(md_content))
 
-soup = BeautifulSoup(html)
+soup = BeautifulSoup(html, 'html.parser')
 title = soup.findAll('h1', limit=1)[0].text
 if len(title) < 5:
     print("Couldn't parse the title! Do you have an h1 title?")
     exit(0)
 
-wp = Client(url+"xmlrpc.php", user, password)
+xmlrpc_url = url+"xmlrpc.php"
+wp = Client(xmlrpc_url, user, password)
 
 images = {}
 
@@ -134,8 +137,9 @@ if title is not None:
 
 post.content = html
 
+publish = False
 if opts.publish == True:
-    post.post_status = 'publish'
+    publish = True
 
 if len(opts.tags) > 0:
     tags = opts.tags.split(",")
@@ -150,3 +154,4 @@ if len(opts.categories) > 0:
     post.terms_names['category'] = cats
 
 post_id = wp.call(NewPost(post))
+#print post.description
